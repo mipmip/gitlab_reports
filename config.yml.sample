@@ -1,0 +1,4 @@
+---
+TOKEN: GITLAB-TOKEN
+ENDPOINT: https://gitlab.yourcompany.net/api/v4
+

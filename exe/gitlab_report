@@ -1,0 +1,92 @@
+#!/usr/bin/env ruby
+require 'yaml'
+
+require 'bundler/setup'
+require 'thor'
+require 'gitlab'
+require 'pp'
+require 'markdown-tables'
+
+CONFIG_FILENAME = '~/.gitlab_reports.yml'
+
+begin
+  CONFIG = YAML.load_file(File.expand_path(CONFIG_FILENAME))
+rescue
+  raise "Could not open #{File.expand_path(CONFIG_FILENAME)}. See documentation"
+end
+
+TOKEN = CONFIG['TOKEN']
+ENDPOINT = CONFIG['ENDPOINT']
+
+class GitLabCli < Thor
+  include Thor::Actions
+
+  def self.source_root
+    File.dirname(__FILE__)
+  end
+
+  desc "report [report_config_file.yml]", "print report with config"
+  def report config_file
+
+    rapconf = YAML.load_file(config_file)
+    @title = rapconf['title']
+
+    @proj = []
+
+    gitlab = Gitlab.client(endpoint: ENDPOINT, private_token: TOKEN)
+    rapconf['project_ids'].each do |id|
+      project = {}
+      project['name'] = gitlab.project(id).to_hash['name']
+      issue_rows=[]
+
+      gitlab.issues(id.to_s,{per_page:9999, state: 'opened'}).collect do |pr|
+
+        lbl_include = rapconf.key?("labels_include") ? pr.to_hash['labels'].grep(Regexp.new(rapconf['labels_include'])).count : 1
+        lbl_exclude = rapconf.key?("labels_exclude") ? pr.to_hash['labels'].grep(Regexp.new(rapconf['labels_exclude'])).count : 0
+
+        if lbl_include > 0 and lbl_exclude ==0
+
+          cels = []
+
+          rapconf['columns'].each do |l|
+            if l=='labels'
+              cels << pr.to_hash[l].join('; ')
+            elsif l=='iid'
+              cels << "#" + pr.to_hash[l].to_s
+            elsif l=='assignee'
+              if pr.to_hash[l]
+                cels << pr.to_hash[l]['name'].to_s
+              else
+                cels << ' - '
+              end
+            else
+              cels << pr.to_hash[l].to_s
+            end
+          end
+
+          issue_rows << cels
+
+        end
+      end
+
+      unless issue_rows.count == 0
+        project['issue_table'] = MarkdownTables.make_table(rapconf['columns'], issue_rows, is_rows: true, align: ['r', 'l', 'l'])
+        @proj << project
+      end
+
+    end
+
+    template(rapconf['template'],File.expand_path(rapconf['filename']))
+  end
+
+  desc "projects", "print all projects with id and title"
+  def projects
+    gitlab = Gitlab.client(endpoint: ENDPOINT, private_token: TOKEN)
+    gitlab.projects(per_page: 9999).collect do |pr|
+      print pr.to_hash['id'].to_s + ' ' + pr.to_hash['name'] + "\n"
+    end
+  end
+
+end
+
+GitLabCli::start(ARGV)
