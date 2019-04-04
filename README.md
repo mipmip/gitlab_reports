@@ -4,6 +4,12 @@ Gitlab reports is a CLI utility that helps you creating reports from gitlab. It
 uses yml-confiration files for report configuration and ERB-templates for
 creating a report lay-out.
 
+## Features
+- configurable reports with yaml
+- output to any format using erb-tempates
+- simple, no hasle
+- works with self-hosted gitab
+
 ## Installation
 
 Install the executable with:
@@ -15,7 +21,6 @@ Add a new access key in Gitlab. [Check this video how](https://www.youtube.com/w
 Create main config file:
 
     echo "---" > $HOME/.gitlab_reports.yml
-    echo "---" >> $HOME/.gitlab_reports.yml
     # Paste your token in de command below
     echo "TOKEN: [YOUR NEW TOKEN]" >> $HOME/.gitlab_reports.yml
     # Enter your local gitlab-url + /api/v4
