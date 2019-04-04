@@ -1,35 +1,63 @@
-# GitlabReports
+# Gitlab Reports
 
-TODO:
-
-- [ ] This documentation
-- [ ] move stuff from werklijst hier naar toe
+Gitlab reports is a CLI utility that helps you creating reports from gitlab. It
+uses yml-confiration files for report configuration and ERB-templates for
+creating a report lay-out.
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Install the executable with:
 
-```ruby
-gem 'gitlab_reports'
-```
+    gem install gitlab_reports
 
-And then execute:
+Add a new access key in Gitlab. [Check this video how](https://www.youtube.com/watch?v=xqmVBuNWMYY&feature=youtu.be)
 
-    $ bundle
+Create main config file:
 
-Or install it yourself as:
-
-    $ gem install gitlab_reports
+    echo "---" > $HOME/.gitlab_reports.yml
+    echo "---" >> $HOME/.gitlab_reports.yml
+    # Paste your token in de command below
+    echo "TOKEN: [YOUR NEW TOKEN]" >> $HOME/.gitlab_reports.yml
+    # Enter your local gitlab-url + /api/v4
+    echo "ENDPOINT: https://your-gitlab.url/api/v4" >> $HOME/.gitlab_reports.yml
 
 ## Usage
 
-TODO: Write usage instructions here
+Create a report-confirguration in YAML, save it anywhere you like.
 
-## Development
+It looks like this:
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+```yaml
+---
+title: Betaalde Issues uitvoeren
+subtitle: Issues met impacts akkoord per project (uitvoeren)
+filename: ~/Desktop/impacts-akkoord.md
+columns:
+  - iid
+  - title
+  - assignee
+  - labels
+project_ids:
+  - 556 # comment this is project x, it will be included in the report
+  - 555 # this is project y, idem dito
+labels_include: feature|bug # seperate labels with | (pipe)
+labels_exclude: please\ close|invalid:.* # regex is allowed
+template: /path/to/template/issues-per-project.md.erb # html-templates are alow possible
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+Create a report-template as ERB, save it anywhere you like, refer to it in your report-configuration
+
+Here's an example:
+
+```
+# <%= @title  %>
+
+<% @proj.each do | prj | %>
+## <%=prj['name']%>
+<%=prj['issue_table']%>
+<% end %>
+```
+
 
 ## Contributing
 
