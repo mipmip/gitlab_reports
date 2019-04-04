@@ -28,6 +28,23 @@ Create main config file:
 
 ## Usage
 
+Before you can use gitlab_reports, you must first create a report confiration
+
+```
+Commands:
+  gitlab_report help [COMMAND]                   # Describe available commands or one specific command
+  gitlab_report projects                         # print all projects with id and title
+  gitlab_report report [report_config_file.yml]  # print report with config
+```
+
+Example command:
+
+  gitlab_report report ~/report-all-paying-customers.yml
+
+
+
+## Report Configuation
+
 Create a report-confirguration in YAML, save it anywhere you like.
 
 It looks like this:
@@ -63,6 +80,18 @@ Here's an example:
 <% end %>
 ```
 
+### YAML-fields description
+
+| field          | description                                                | erb var       |
+|----------------|------------------------------------------------------------|---------------|
+| title          | Report Title                                               | @title        |
+| subtitle       | Subtitle                                                   | @subtitle   |
+| filename       | output filename                                            |               |
+| columns        | columns of issues to include in select query               | keys of @proj |
+| project_ids    | numeric id's of projects to include in select select query |               |
+| labels_include | issue labels to include in query condition                 |               |
+| labels_exclude | issue labels to exclude in query condition                 |               |
+| template       | erb-file to use as template                                |               |
 
 ## Contributing
 
